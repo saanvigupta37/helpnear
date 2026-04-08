@@ -26,6 +26,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     const [profile, setProfile] = useState<UserProfile | null>(null);
     const [loading, setLoading] = useState(true);
 
+    // ── Fetch profile from users table ───────────────────────
     const fetchProfile = async (userId: string) => {
         const { data } = await supabase
             .from('users')
@@ -35,19 +36,50 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         if (data) setProfile(data as UserProfile);
     };
 
+    // ── Ensure a row exists in users table for this auth user ─
+    const ensureUserRow = async (userId: string, email?: string) => {
+        const { data: existing } = await supabase
+            .from('users')
+            .select('id')
+            .eq('id', userId)
+            .maybeSingle();
+
+        if (!existing) {
+            // First time sign-in — create the profile row
+            await supabase.from('users').upsert([
+                {
+                    id: userId,
+                    name: email?.split('@')[0] ?? 'User',
+                    phone: '',
+                    verified: false,
+                    is_verified: false,
+                    helps_completed: 0,
+                    avg_rating: 0,
+                    trust_score: 0,
+                    points: 0,
+                    badges: [],
+                },
+            ]);
+        }
+    };
+
     useEffect(() => {
         // Get initial session
         supabase.auth.getSession().then(({ data: { session } }) => {
             setSession(session);
-            if (session?.user?.id) fetchProfile(session.user.id);
+            if (session?.user) {
+                ensureUserRow(session.user.id, session.user.email ?? undefined)
+                    .then(() => fetchProfile(session.user.id));
+            }
             setLoading(false);
         });
 
-        // Listen for auth state changes
+        // Listen for auth state changes (login / logout / token refresh)
         const { data: { subscription } } = supabase.auth.onAuthStateChange(
             async (_event, session) => {
                 setSession(session);
-                if (session?.user?.id) {
+                if (session?.user) {
+                    await ensureUserRow(session.user.id, session.user.email ?? undefined);
                     await fetchProfile(session.user.id);
                 } else {
                     setProfile(null);
@@ -57,6 +89,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         );
 
         return () => subscription.unsubscribe();
+        // eslint-disable-next-line react-hooks/exhaustive-deps
     }, []);
 
     const signOut = async () => {

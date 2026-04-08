@@ -3,35 +3,49 @@ import { supabase } from '@/lib/supabase';
 import { useLocation } from '@/context/LocationContext';
 import type { HelpRequest } from '@/lib/types';
 
-export interface RankedHelpRequest extends HelpRequest {
-    score: number;
-}
-
 export function useNearbyRequests() {
-    const { location } = useLocation();
-    const [requests, setRequests] = useState<RankedHelpRequest[]>([]);
+    const { location, loading: locationLoading } = useLocation();
+
+    const [requests, setRequests] = useState<HelpRequest[]>([]);
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState<string | null>(null);
 
     const fetchRequests = useCallback(async () => {
-        if (!location) return;
+        // ⛔ Wait until location finishes loading
+        if (locationLoading) {
+            console.log('⏳ Waiting for location...');
+            return;
+        }
+
+        // ❌ No location after loading → show error
+        if (!location) {
+            console.log('❌ Location unavailable');
+            setError('Location not available');
+            setLoading(false);
+            return;
+        }
+
+        console.log('📍 Fetching nearby for:', location);
+
         setLoading(true);
         setError(null);
 
-        // Use the new ranked RPC instead of the basic distance-only one
-        const { data, error: err } = await supabase.rpc('get_ranked_requests', {
+        const { data, error } = await supabase.rpc('get_nearby_requests', {
             user_lat: location.latitude,
             user_lng: location.longitude,
             radius_meters: 500,
         });
 
-        if (err) {
-            setError(err.message);
+        if (error) {
+            console.error('❌ RPC ERROR:', error.message);
+            setError(error.message);
         } else {
-            setRequests((data as RankedHelpRequest[]) ?? []);
+            console.log('✅ REQUESTS:', data);
+            setRequests((data as HelpRequest[]) ?? []);
         }
+
         setLoading(false);
-    }, [location]);
+    }, [location, locationLoading]);
 
     useEffect(() => {
         fetchRequests();
@@ -41,11 +55,16 @@ export function useNearbyRequests() {
             .on(
                 'postgres_changes',
                 { event: '*', schema: 'public', table: 'help_requests' },
-                () => { fetchRequests(); }
+                () => {
+                    console.log('🔄 DB change detected');
+                    fetchRequests();
+                }
             )
             .subscribe();
 
-        return () => { supabase.removeChannel(channel); };
+        return () => {
+            supabase.removeChannel(channel);
+        };
     }, [fetchRequests]);
 
     return { requests, loading, error, refetch: fetchRequests };

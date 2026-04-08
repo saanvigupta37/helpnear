@@ -48,7 +48,6 @@ function RootNavigator() {
         >
             <Stack.Screen name="index" />
             <Stack.Screen name="auth/phone" />
-            <Stack.Screen name="auth/otp" />
             <Stack.Screen name="(tabs)" />
             <Stack.Screen name="request/new" options={{ animation: 'slide_from_bottom' }} />
             <Stack.Screen name="request/[id]" options={{ animation: 'slide_from_right' }} />

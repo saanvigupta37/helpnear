@@ -1,7 +1,10 @@
+// ─── Imports ────────────────────────────────────────────────────────────────
+
 import type { HelpTypeId, TimeOption, UrgencyLevel, RequestStatus } from './constants';
 
-// ─── Database Models ──────────────────────────────────────────────────────────
+// ─── Database Models ─────────────────────────────────────────────────────────
 
+// ✅ User profile
 export interface UserProfile {
     id: string;
     name: string;
@@ -10,7 +13,8 @@ export interface UserProfile {
     helps_completed: number;
     avatar_url?: string;
     created_at: string;
-    // Production upgrade fields
+
+    // Extended fields
     last_request_at?: string;
     avg_rating: number;
     trust_score: number;
@@ -19,6 +23,7 @@ export interface UserProfile {
     badges: string[];
 }
 
+// ✅ Help request
 export interface HelpRequest {
     id: string;
     type: HelpTypeId;
@@ -26,18 +31,26 @@ export interface HelpRequest {
     time_needed: TimeOption;
     note?: string;
     status: RequestStatus;
+
     lat: number;
     lng: number;
+
+    // 🔥 MUST match DB column name exactly
     requested_by: string;
+
+    // Optional fields
     accepted_by?: string;
     created_at: string;
-    // Joined fields
+
+    // Joined relations (from Supabase select)
     requester?: UserProfile;
     helper?: UserProfile;
-    // Computed
+
+    // Computed field (from RPC)
     distance_meters?: number;
 }
 
+// ✅ Chat message
 export interface Message {
     id: string;
     request_id: string;
@@ -45,30 +58,35 @@ export interface Message {
     message: string;
     created_at: string;
     read_at?: string;
-    // Joined
+
+    // Joined sender
     sender?: UserProfile;
 }
 
+// ✅ Active session
 export interface ActiveSession {
     id: string;
     request_id: string;
+
     live_location_enabled: boolean;
     panic_triggered: boolean;
+
     requester_lat?: number;
     requester_lng?: number;
     helper_lat?: number;
     helper_lng?: number;
+
     created_at: string;
 }
 
-// ─── Location ─────────────────────────────────────────────────────────────────
+// ─── Location ────────────────────────────────────────────────────────────────
 
 export interface Coordinates {
     latitude: number;
     longitude: number;
 }
 
-// ─── Navigation Params ────────────────────────────────────────────────────────
+// ─── Navigation ──────────────────────────────────────────────────────────────
 
 export interface RequestRouteParams {
     id: string;

@@ -6,14 +6,14 @@ const supabaseAnonKey = process.env.EXPO_PUBLIC_SUPABASE_ANON_KEY!;
 
 // Custom storage adapter using expo-secure-store for persistent sessions
 const ExpoSecureStoreAdapter = {
-    getItem: (key: string) => {
+    getItem: (key: string): Promise<string | null> => {
         return SecureStore.getItemAsync(key);
     },
-    setItem: (key: string, value: string) => {
-        SecureStore.setItemAsync(key, value);
+    setItem: (key: string, value: string): Promise<void> => {
+        return SecureStore.setItemAsync(key, value);
     },
-    removeItem: (key: string) => {
-        SecureStore.deleteItemAsync(key);
+    removeItem: (key: string): Promise<void> => {
+        return SecureStore.deleteItemAsync(key);
     },
 };
 

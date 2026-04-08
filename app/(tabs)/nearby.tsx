@@ -6,6 +6,7 @@ import {
     FlatList,
     RefreshControl,
     ActivityIndicator,
+    Alert,
 } from 'react-native';
 import { router } from 'expo-router';
 import { SafeAreaView } from 'react-native-safe-area-context';
@@ -21,22 +22,42 @@ export default function NearbyScreen() {
     const { user } = useAuth();
 
     const handleAccept = async (request: HelpRequest) => {
-        if (!user) return;
+        if (!user) {
+            Alert.alert('Error', 'You must be logged in');
+            return;
+        }
+
+        // 🔥 FIX 1: ensure correct status + error handling
         const { error } = await supabase
             .from('help_requests')
-            .update({ status: 'Accepted', accepted_by: user.id })
+            .update({
+                status: 'Accepted',
+                accepted_by: user.id,
+            })
             .eq('id', request.id)
-            .eq('status', 'Open'); // optimistic locking — only accept if still Open
+            .eq('status', 'Open');
 
-        if (!error) {
-            // Create active session
-            await supabase.from('active_sessions').insert({
+        if (error) {
+            console.error('Accept error:', error.message);
+            Alert.alert('Error', error.message);
+            return;
+        }
+
+        // 🔥 FIX 2: create active session safely
+        const { error: sessionError } = await supabase
+            .from('active_sessions')
+            .insert({
                 request_id: request.id,
                 live_location_enabled: true,
                 panic_triggered: false,
             });
-            router.push(`/request/${request.id}`);
+
+        if (sessionError) {
+            console.error('Session error:', sessionError.message);
         }
+
+        // Navigate to active request
+        router.push(`/request/${request.id}`);
     };
 
     return (

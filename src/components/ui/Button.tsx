@@ -5,7 +5,6 @@ import {
     StyleSheet,
     ActivityIndicator,
     ViewStyle,
-    TextStyle,
     TouchableOpacityProps,
 } from 'react-native';
 import { Colors, FontSizes } from '@/lib/constants';
@@ -32,12 +31,40 @@ export function Button({
 }: ButtonProps) {
     const isDisabled = disabled || loading;
 
+    const variantStyle = {
+        primary: styles.primary,
+        danger: styles.danger,
+        warning: styles.warning,
+        outline: styles.outline,
+        ghost: styles.ghost,
+    }[variant];
+
+    const sizeStyle = {
+        sm: styles.sm,
+        md: styles.md,
+        lg: styles.lg,
+    }[size];
+
+    const variantTextStyle = {
+        primary: styles.primaryText,
+        danger: styles.dangerText,
+        warning: styles.warningText,
+        outline: styles.outlineText,
+        ghost: styles.ghostText,
+    }[variant];
+
+    const sizeTextStyle = {
+        sm: styles.smText,
+        md: styles.mdText,
+        lg: styles.lgText,
+    }[size];
+
     return (
         <TouchableOpacity
             style={[
                 styles.base,
-                styles[variant],
-                styles[size],
+                variantStyle,
+                sizeStyle,
                 fullWidth && styles.fullWidth,
                 isDisabled && styles.disabled,
                 style as ViewStyle,
@@ -51,7 +78,7 @@ export function Button({
             ) : (
                 <>
                     {icon && <>{icon}</>}
-                    <Text style={[styles.text, styles[`${variant}Text`] as TextStyle, styles[`${size}Text`] as TextStyle]}>
+                    <Text style={[styles.text, variantTextStyle, sizeTextStyle]}>
                         {title}
                     </Text>
                 </>

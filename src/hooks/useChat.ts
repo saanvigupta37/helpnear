@@ -8,7 +8,7 @@ export function useChat(requestId: string) {
     const { user } = useAuth();
     const [messages, setMessages] = useState<Message[]>([]);
     const [loading, setLoading] = useState(true);
-    const listRef = useRef<FlatList | null>(null);
+    const listRef = useRef<FlatList<Message> | null>(null);
 
     const fetchMessages = useCallback(async () => {
         const { data } = await supabase

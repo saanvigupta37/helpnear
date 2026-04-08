@@ -18,11 +18,21 @@ export type HelpTypeId = (typeof HELP_TYPES)[number]['id'];
 export const TIME_OPTIONS = [10, 20, 30] as const;
 export type TimeOption = (typeof TIME_OPTIONS)[number];
 
+// ✅ Must match DB exactly
 export const URGENCY_LEVELS = ['Normal', 'Urgent'] as const;
 export type UrgencyLevel = (typeof URGENCY_LEVELS)[number];
 
+// ✅ Must match DB exactly (CRITICAL FIX)
 export const REQUEST_STATUSES = ['Open', 'Accepted', 'Done', 'Cancelled'] as const;
 export type RequestStatus = (typeof REQUEST_STATUSES)[number];
+
+// ✅ Optional helper (makes UI + debugging easier)
+export const STATUS_LABELS: Record<RequestStatus, string> = {
+    Open: 'Open',
+    Accepted: 'Accepted',
+    Done: 'Completed',
+    Cancelled: 'Cancelled',
+};
 
 // ─── Colors ───────────────────────────────────────────────────────────────────
 
@@ -58,4 +68,7 @@ export const FontSizes = {
     '3xl': 32,
 } as const;
 
-export const EMERGENCY_NUMBER = '112'; // Universal emergency number
+// ─── Emergency ───────────────────────────────────────────────────────────────
+
+// ✅ India universal emergency number
+export const EMERGENCY_NUMBER = '112';

@@ -31,7 +31,8 @@ import type { HelpRequest } from '@/lib/types';
 type Tab = 'chat' | 'map';
 
 export default function ActiveHelpScreen() {
-    const { id } = useLocalSearchParams<{ id: string }>();
+    const params = useLocalSearchParams<{ id: string }>();
+    const id = Array.isArray(params.id) ? params.id[0] : params.id;
     const { user } = useAuth();
     const { location } = useLocation();
     const { logEvent } = useAnalytics();

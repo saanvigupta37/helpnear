@@ -1,4 +1,5 @@
 import { useEffect, useState, useCallback, useRef } from 'react';
+import type { RealtimeChannel } from '@supabase/supabase-js';
 import { supabase } from '@/lib/supabase';
 import { useAuth } from '@/context/AuthContext';
 
@@ -11,7 +12,7 @@ export function useTypingIndicator(requestId: string) {
     const { user } = useAuth();
     const [otherIsTyping, setOtherIsTyping] = useState(false);
     const clearTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
-    const channelRef = useRef<ReturnType<typeof supabase.channel> | null>(null);
+    const channelRef = useRef<RealtimeChannel | null>(null);
 
     useEffect(() => {
         const channel = supabase.channel(`typing-${requestId}`, {
